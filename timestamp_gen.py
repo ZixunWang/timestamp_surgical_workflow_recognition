@@ -26,14 +26,18 @@ phase2label_dicts = {
 }
 sample_rate = 1
 
+
 def random_gen(dataset, anno_path, save_path):
+    random.seed(20000604)
     phase2label = phase2label_dicts[dataset]
     anno_files = [os.path.join(anno_path, x) for x in sorted(os.listdir(anno_path))]
     vids = range(len(anno_files))
     vid2timestamp = {}
     for idx, anno_file in enumerate(anno_files):
         with open(anno_file, 'r') as f:
-            content = f.read().split('\n')[:-1]
+            content = f.read().split('\n')
+            if content[-1] == '':
+                content = content[:-1]
         labels = [phase2label[line.strip().split()[1]] for line in content]
         labels = labels[::sample_rate]
         last = 0
@@ -41,10 +45,10 @@ def random_gen(dataset, anno_path, save_path):
         timestamp = list()
         while cur < len(labels):
             if labels[cur] != labels[cur-1]:
-                timestamp.append(random.randint(last, cur))
+                timestamp.append(random.randint(last, cur-1))
                 last = cur
             cur += 1
-        timestamp.append(random.randint(last, cur))
+        timestamp.append(random.randint(last, cur-1))
         vid2timestamp[vids[idx]] = timestamp
     print('timestamp annotations are save to {}'.format(save_path))
     np.save(save_path, vid2timestamp, allow_pickle=True)
